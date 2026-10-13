@@ -5,8 +5,6 @@
 
 **A Kotlin adventure game with a persistent world, a web interface, and a multi-container architecture.**
 
-`Kotlin` · `Ktor` · `PostgreSQL` · `Docker Compose` · `HTML / CSS / JavaScript`
-
 *Enter the manor. Discover its secrets. Your progress survives.*
 
 </div>
@@ -23,11 +21,7 @@ Players can choose **Artist**, **Explorer**, or **Mage**, explore the Grand Hall
 
 | Create your character | Explore the manor |
 |:---:|:---:|
-| ![Character creation](screenshots/06-game-start.png) | ![Gameplay](screenshots/07-gameplay.png) |
-
-**Saved adventure after restart**
-
-![Restored player progress](screenshots/08-saved-progress.png)
+| ![Character creation](screenshots/character_creation.png) | ![Gameplay](screenshots/game-start.jpg) | ![Gameplay](screenshots/game-start2.jpg) |
 
 > Screenshots are captured from the running application. See `screenshots/` for all evidence.
 
@@ -106,15 +100,15 @@ If `8081` is occupied, change `APP_PORT` in `.env` (for example, to `8082`) and 
 
 ### 1. Successful image build
 
-![Docker Compose build output](screenshots/01-docker-build.png)
+![Docker Compose build output](screenshots/docker-build.jpg)
 
 ### 2. Running backend and database containers
 
-![docker compose ps output](screenshots/02-running-containers.png)
+![docker compose ps output](screenshots/database.jpg)
 
 ### 3. Both services in Docker Desktop
 
-![Docker Desktop containers view](screenshots/03-docker-desktop.png)
+![Docker Desktop containers view](screenshots/docker-desktop.jpg)
 
 ## ✦ REST API
 
@@ -134,10 +128,6 @@ curl http://localhost:8081/api/health
 curl http://localhost:8081/api/players/1
 curl http://localhost:8081/api/players/1/paintings
 ```
-
-**API requests and responses**
-
-![API requests](screenshots/05-api-requests.png)
 
 ## ✦ PostgreSQL and persistence
 
@@ -166,10 +156,6 @@ SELECT * FROM paintings;
 ```
 
 Type `\q` to exit `psql`.
-
-**Database query results**
-
-![PostgreSQL tables and records](screenshots/04-database.png)
 
 ### Persistence demonstration
 
@@ -238,16 +224,3 @@ MysticalManor/
 | `docker compose up -d` | Recreate services using existing images |
 | `docker compose config -q` | Validate Compose configuration |
 
-## ✦ What I implemented
-
-I kept the original Kotlin console project and added a web entry point, REST API, PostgreSQL persistence, a lightweight game UI, and a complete Docker Compose setup. The most important improvement is that the manor now **remembers the player** even after its containers are recreated.
-
----
-
-<div align="center">
-
-**🥀 MYSTICAL MANOR · THE LIVING ARCHIVE**
-
-*Some secrets are meant to be remembered.*
-
-</div>
