@@ -92,33 +92,3 @@ SELECT p.id, p.name, pt.title FROM players p LEFT JOIN paintings pt ON pt.player
 
 `players` is the parent table; `inventory` and `paintings` reference it with `ON DELETE CASCADE`. Deleting a player deletes related rows. If you customize database username or name in `.env`, change the `psql` command accordingly.
 
-## Docker / security
-
-- Custom multi-stage Dockerfile compiles Kotlin with Gradle and runs it on JRE 17 as a non-root user.
-- `compose.yaml` defines backend and PostgreSQL services, a private network, a database healthcheck, environment variables, and a named volume.
-- `.env.example` documents required settings; `.env` is excluded from Git and Docker build context.
-- `.dockerignore` excludes local IDE/build files and secrets.
-
-## Evidence screenshots
-
-Add your own real screenshots under `screenshots/`:
-
-- `01-build.png`: successful `docker compose up --build -d`
-- `02-containers.png`: `docker compose ps` and/or Docker Desktop with both services
-- `03-postman-crud.png`: Postman Collection Runner with passing requests
-- `04-postgres.png`: SQL rows before/after API operations
-- `05-game.png`: browser UI with saved character
-- `06-persistence.png`: character restored after `docker compose down` and `up`
-
-Only insert screenshot links below once you have taken the images:
-
-<!-- ![Build](screenshots/01-build.png) -->
-<!-- ![Containers](screenshots/02-containers.png) -->
-<!-- ![Postman](screenshots/03-postman-crud.png) -->
-<!-- ![PostgreSQL](screenshots/04-postgres.png) -->
-<!-- ![Game](screenshots/05-game.png) -->
-<!-- ![Persistence](screenshots/06-persistence.png) -->
-
-## Development notes
-
-The original Kotlin console source files are preserved. `WebMain.kt` contains the web entry point, SQL database operations and Ktor routes. `src/main/resources/web/` contains the frontend. This is a lightweight browser adaptation, not a full rewrite of the console game.
