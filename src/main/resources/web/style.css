@@ -1,1 +1,210 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0%,#32273d 0%,#15131c 45%,#0c0b11 100%);color:#eae2d5;font-family:Inter,Arial,sans-serif;min-height:100vh}main{max-width:960px;margin:auto;padding:55px 22px}header{text-align:center;margin-bottom:38px}h1,h2,h3{font-family:Cinzel,Georgia,serif}h1{font-size:clamp(2.4rem,7vw,5rem);letter-spacing:.09em;color:#e4bf7c;margin:10px 0;text-shadow:0 0 32px #b7874d44}header p{color:#a8a0ad}.eyebrow{color:#c99b60;letter-spacing:.3em;font-size:.75rem;text-transform:uppercase}.panel{background:#1b1924dd;border:1px solid #8d704c66;border-radius:13px;padding:26px;box-shadow:0 16px 60px #0005;margin-bottom:18px}#welcome{max-width:540px;margin:auto;text-align:center}#welcome input,#welcome select{display:block;width:100%;margin:12px 0;padding:13px;background:#100f17;color:#f1e9d9;border:1px solid #6f5940;border-radius:7px;font-size:1rem}button{background:linear-gradient(125deg,#b38a50,#e1b979);color:#201722;border:0;border-radius:7px;padding:13px 19px;font-weight:700;cursor:pointer;transition:transform .2s,filter .2s}button:hover{transform:translateY(-2px);filter:brightness(1.1)}.resume{margin-top:28px;border-top:1px solid #6f594055;padding-top:20px}.stats{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;color:#e1c08e}.story{text-align:center;min-height:290px}.story h2{font-size:2rem}.story p{line-height:1.8;color:#d3cad5}.actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:30px}.columns{display:grid;grid-template-columns:1fr 1fr;gap:18px}.columns .panel{margin:0}li{padding:7px 0;color:#d9c3a2}.link{display:block;margin:22px auto;background:transparent;color:#c5a67b;border:1px solid #826949}#error{color:#ff9d9d;text-align:center;min-height:24px}footer{text-align:center;color:#746b78;font-size:.7rem;letter-spacing:.2em;margin-top:50px}@media(max-width:650px){.columns{grid-template-columns:1fr}.stats{justify-content:center}main{padding-top:30px}}
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    color-scheme: dark;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(
+        ellipse at 50% 0%,
+        #32273d 0%,
+        #15131c 45%,
+        #0c0b11 100%
+    );
+    color: #eae2d5;
+    font-family: Inter, Arial, sans-serif;
+}
+
+main {
+    max-width: 960px;
+    margin: auto;
+    padding: 55px 22px;
+}
+
+/* Header */
+
+header {
+    text-align: center;
+    margin-bottom: 38px;
+}
+
+h1,
+h2,
+h3 {
+    font-family: Cinzel, Georgia, serif;
+}
+
+h1 {
+    margin: 10px 0;
+    font-size: clamp(2.4rem, 7vw, 5rem);
+    letter-spacing: 0.09em;
+    color: #e4bf7c;
+    text-shadow: 0 0 32px #b7874d44;
+}
+
+header p {
+    color: #a8a0ad;
+}
+
+.eyebrow {
+    color: #c99b60;
+    letter-spacing: 0.3em;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+/* Panels */
+
+.panel {
+    margin-bottom: 18px;
+    padding: 26px;
+    background: #1b1924dd;
+    border: 1px solid #8d704c66;
+    border-radius: 13px;
+    box-shadow: 0 16px 60px #0005;
+}
+
+/* Welcome Screen */
+
+#welcome {
+    max-width: 540px;
+    margin: auto;
+    text-align: center;
+}
+
+#welcome input,
+#welcome select {
+    display: block;
+    width: 100%;
+    margin: 12px 0;
+    padding: 13px;
+    background: #100f17;
+    color: #f1e9d9;
+    border: 1px solid #6f5940;
+    border-radius: 7px;
+    font-size: 1rem;
+}
+
+/* Buttons */
+
+button {
+    padding: 13px 19px;
+    background: linear-gradient(125deg, #b38a50, #e1b979);
+    color: #201722;
+    border: 0;
+    border-radius: 7px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+.resume {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #6f594055;
+}
+
+/* Player Statistics */
+
+.stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    color: #e1c08e;
+}
+
+/* Story and Game Actions */
+
+.story {
+    min-height: 290px;
+    text-align: center;
+}
+
+.story h2 {
+    font-size: 2rem;
+}
+
+.story p {
+    line-height: 1.8;
+    color: #d3cad5;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+/* Inventory and Paintings */
+
+.columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.columns .panel {
+    margin: 0;
+}
+
+li {
+    padding: 7px 0;
+    color: #d9c3a2;
+}
+
+/* Navigation */
+
+.link {
+    display: block;
+    margin: 22px auto;
+    background: transparent;
+    color: #c5a67b;
+    border: 1px solid #826949;
+}
+
+/* Errors and Footer */
+
+#error {
+    min-height: 24px;
+    color: #ff9d9d;
+    text-align: center;
+}
+
+footer {
+    margin-top: 50px;
+    color: #746b78;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-align: center;
+}
+
+/* Responsive Layout */
+
+@media (max-width: 650px) {
+    .columns {
+        grid-template-columns: 1fr;
+    }
+
+    .stats {
+        justify-content: center;
+    }
+
+    main {
+        padding-top: 30px;
+    }
+}

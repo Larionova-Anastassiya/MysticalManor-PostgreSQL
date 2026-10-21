@@ -1,226 +1,124 @@
-<div align="center">
+# Mystical Manor — Docker Compose REST API
 
-# 🏰 MYSTICAL MANOR
-### The Living Archive
+A small browser-based adaptation of my original Kotlin console adventure game. Players can create an Artist, Explorer or Mage, explore the manor, discover paintings, collect items and keep progress in PostgreSQL.
 
-**A Kotlin adventure game with a persistent world, a web interface, and a multi-container architecture.**
+**Stack:** Kotlin 2.0.21, Ktor 3.0.3, PostgreSQL 17, JDBC, HTML/CSS/JavaScript, Docker Compose, Gradle, Postman.
 
-*Enter the manor. Discover its secrets. Your progress survives.*
+## Architecture
 
-</div>
+Browser / Postman → HTTP `localhost:8081` → **backend** (Kotlin/Ktor, internal port 8080) → **db** (PostgreSQL, internal port 5432) → **manor-data** named volume.
 
----
+The Compose network provides DNS resolution for the hostname `db`. The database is not published to the host. The backend waits for the database healthcheck.
 
-## ✦ About the project
+## Quick start
 
-I extended my original **Mystical Manor Adventure**, a Kotlin console game, into a small web application backed by PostgreSQL. The original console-game classes are preserved; the web edition adds a separate Ktor server, a browser interface, and database-backed gameplay.
+1. Install Docker Desktop, enable Linux containers and start Docker Engine.
+2. In the project root, create a local environment file: `copy .env.example .env` (Windows CMD) or `cp .env.example .env` (macOS/Linux). Change `POSTGRES_PASSWORD` to a unique password. **Never commit `.env`.**
+3. Validate: `docker compose config -q`.
+4. Start: `docker compose up --build -d` (or `docker compose up` in foreground).
+5. Check: `docker compose ps` and `curl http://localhost:8081/api/health`.
+6. Play: http://localhost:8081.
 
-Players can choose **Artist**, **Explorer**, or **Mage**, explore the Grand Hall, Gallery, and Library, collect items, discover paintings, and use class-specific abilities. Player state is stored in a relational database instead of disappearing when the application restarts.
+If port 8081 is busy, change `APP_PORT` in `.env` and update the Postman `baseUrl` collection variable.
 
-## ✦ Game preview
+**Persistence demonstration:** create a player, perform actions, run `docker compose down`, then `docker compose up -d`, and reload the same player ID. `docker compose down -v` **deletes** database data and must not be used for persistence testing.
 
-| Create your character | Explore the manor |
-|:---:|:---:|
-| ![Character creation](screenshots/character_creation.png) | ![Gameplay](screenshots/game-start.jpg) | ![Gameplay](screenshots/game-start2.jpg) |
+**Existing database/password:** PostgreSQL initializes the user's password only on a fresh data directory. If credentials are changed after volume initialization, update the database user's password; deleting the volume is only appropriate when existing saves can be discarded.
 
-> Screenshots are captured from the running application. See `screenshots/` for all evidence.
+## REST API reference
 
-## ✦ Architecture
+Base URL: `http://localhost:8081`. All player endpoints use JSON except DELETE (204, empty response). Error responses generally contain `{"error":"..."}`.
 
-```text
-Browser (HTML / CSS / JavaScript)
-            │ HTTP :8081
-            ▼
-   Kotlin / Ktor backend  ──── SQL ────► PostgreSQL
-       Docker service: backend           Docker service: db
-            │                                  │
-            └──── Docker Compose network ─────┘
-                                               │
-                                      Named volume: manor-data
+| Method | Endpoint | Purpose | Expected success |
+|---|---|---|---|
+| GET | `/api/health` | Backend health | 200 |
+| GET | `/api/players` | List all saved players | 200 |
+| POST | `/api/players` | Create player | 201 |
+| GET | `/api/players/{id}` | Get player by ID | 200 |
+| PUT | `/api/players/{id}` | Update name and class | 200 |
+| DELETE | `/api/players/{id}` | Delete player and associated items/paintings | 204 |
+| POST | `/api/players/{id}/actions` | Perform a game action | 200 |
+| GET | `/api/players/{id}/inventory` | List inventory | 200 |
+| GET | `/api/players/{id}/paintings` | List discovered paintings | 200 |
+
+### JSON examples
+
+Create player (`POST /api/players`):
+
+```json
+{"name":"Anastasia","characterClass":"Artist"}
 ```
 
-Docker Compose starts **two services**. The backend is built from a custom `Dockerfile`; PostgreSQL uses the `postgres:17-alpine` image. The backend connects to the database using the Compose service name `db`, not `localhost`. A database health check helps ensure PostgreSQL is ready before the backend starts.
+Update player (`PUT /api/players/1`):
 
-## ✦ Getting started
-
-**Requirements:** Docker Desktop with Docker Compose, and an available host port (default `8081`). You do not need to install Kotlin, Gradle, or PostgreSQL locally.
-
-**1. Clone the repository**
-
-```bash
-git clone https://github.com/YOUR-USERNAME/mystical-manor-docker-compose.git
-cd mystical-manor-docker-compose
+```json
+{"name":"Updated Hero","characterClass":"Explorer"}
 ```
 
-**2. Create your local environment file**
+Supported character classes: `Artist`, `Explorer`, `Mage`. Updating a class changes maximum health and its starting item, while retaining game progress. Player names must contain 1–60 characters.
 
-Windows CMD:
+Perform action (`POST /api/players/1/actions`):
 
-```cmd
-copy .env.example .env
+```json
+{"action":"gallery"}
 ```
 
-macOS / Linux:
+Supported actions: `hall`, `gallery`, `library`, `explore`, `ability`. The game state, inventory and paintings are stored in PostgreSQL. `GET /api/players/{id}` returns a JSON object containing `id`, `name`, `characterClass`, `health`, `maxHealth`, `gold`, `experience`, `room`, `inventory`, `paintings`, and `message`.
 
-```bash
-cp .env.example .env
-```
+Errors: `400` for invalid IDs or invalid player/action values, `404` for missing players. `DELETE` returns `204` without JSON when successful. Request bodies must be valid JSON.
 
-Edit `.env` and replace the placeholder password with your own local password:
+## Postman collection
 
-```dotenv
-APP_PORT=8081
-POSTGRES_DB=mystical_manor
-POSTGRES_USER=manor_user
-POSTGRES_PASSWORD=REPLACE_WITH_YOUR_OWN_PASSWORD
-```
+Import `postman/MysticalManor.postman_collection.json` using **Postman → Import → File**. No account is required for the desktop lightweight/local workflow where available; if Postman prompts for sign-in, follow its on-screen account instructions. The collection contains all nine endpoints and 11 sequential test requests, including CRUD and a 404 check after deletion.
 
-**Never commit `.env` or real credentials.** Only `.env.example` belongs in the repository.
+1. Start the containers.
+2. Open the collection → **Variables**; set `baseUrl` to `http://localhost:8081` (or your configured port).
+3. Send **02 Create player**; its Tests script saves the returned ID as `playerId`.
+4. Send 03–11 in order, or run the whole collection with **Run**. **10 Delete player** intentionally deletes the Postman test character.
+5. Verify the green test results and screenshot the collection run summary.
 
-**3. Build and start both services**
-
-```bash
-docker compose up --build -d
-```
-
-**4. Check their status**
-
-```bash
-docker compose ps
-```
-
-**5. Open the application**
-
-- Game: **http://localhost:8081/**
-- API health: **http://localhost:8081/api/health**
-
-If `8081` is occupied, change `APP_PORT` in `.env` (for example, to `8082`) and recreate the backend with `docker compose up -d`.
-
-## ✦ Docker evidence
-
-### 1. Successful image build
-
-![Docker Compose build output](screenshots/docker-build.jpg)
-
-### 2. Running backend and database containers
-
-![docker compose ps output](screenshots/database.jpg)
-
-### 3. Both services in Docker Desktop
-
-![Docker Desktop containers view](screenshots/docker-desktop.jpg)
-
-## ✦ REST API
-
-| Method | Endpoint | Purpose |
-|---|---|---|
-| `GET` | `/api/health` | Backend health check |
-| `POST` | `/api/players` | Create a character and save it in PostgreSQL |
-| `GET` | `/api/players/{id}` | Load saved player progress |
-| `POST` | `/api/players/{id}/actions` | Explore, move, or use an ability; persist changes |
-| `GET` | `/api/players/{id}/inventory` | Read saved inventory |
-| `GET` | `/api/players/{id}/paintings` | Read discovered paintings |
-
-Example requests (replace `1` with your saved player ID):
-
-```bash
-curl http://localhost:8081/api/health
-curl http://localhost:8081/api/players/1
-curl http://localhost:8081/api/players/1/paintings
-```
-
-## ✦ PostgreSQL and persistence
-
-The database contains three related tables:
-
-| Table | Stored data |
-|---|---|
-| `players` | Name, class, HP, gold, experience, current room, last event |
-| `inventory` | Items linked to each player |
-| `paintings` | Paintings discovered by each player |
-
-The backend uses SQL **INSERT**, **SELECT**, and **UPDATE** statements. The `inventory` and `paintings` tables reference `players` using foreign keys.
-
-To inspect the database using the credentials from `.env`, run:
+## Database demonstration
 
 ```bash
 docker compose exec db psql -U manor_user -d mystical_manor
 ```
 
-Then:
-
 ```sql
-SELECT id, name, character_class, health, gold, experience, room FROM players;
+SELECT * FROM players;
 SELECT * FROM inventory;
 SELECT * FROM paintings;
+SELECT p.id, p.name, pt.title FROM players p LEFT JOIN paintings pt ON pt.player_id=p.id ORDER BY p.id;
 ```
 
-Type `\q` to exit `psql`.
+`players` is the parent table; `inventory` and `paintings` reference it with `ON DELETE CASCADE`. Deleting a player deletes related rows. If you customize database username or name in `.env`, change the `psql` command accordingly.
 
-### Persistence demonstration
+## Docker / security
 
-1. Create a player and explore the manor.
-2. Note the player's save ID and discovered items or paintings.
-3. Remove and recreate the containers:
+- Custom multi-stage Dockerfile compiles Kotlin with Gradle and runs it on JRE 17 as a non-root user.
+- `compose.yaml` defines backend and PostgreSQL services, a private network, a database healthcheck, environment variables, and a named volume.
+- `.env.example` documents required settings; `.env` is excluded from Git and Docker build context.
+- `.dockerignore` excludes local IDE/build files and secrets.
 
-```bash
-docker compose down
-docker compose up -d
-```
+## Evidence screenshots
 
-4. Reload the saved player in the browser. The progress is still present because PostgreSQL stores its data in the **`manor-data` named volume**.
+Add your own real screenshots under `screenshots/`:
 
-> **Important:** `docker compose down -v` removes named volumes and can permanently delete the saved database. Do not use it for the persistence demonstration.
+- `01-build.png`: successful `docker compose up --build -d`
+- `02-containers.png`: `docker compose ps` and/or Docker Desktop with both services
+- `03-postman-crud.png`: Postman Collection Runner with passing requests
+- `04-postgres.png`: SQL rows before/after API operations
+- `05-game.png`: browser UI with saved character
+- `06-persistence.png`: character restored after `docker compose down` and `up`
 
-## ✦ Project structure
+Only insert screenshot links below once you have taken the images:
 
-```text
-MysticalManor/
-├── src/main/kotlin/
-│   ├── Main.kt                 # Original console entry point
-│   ├── Game.kt                 # Original console gameplay
-│   ├── Character.kt            # Character classes
-│   ├── WebMain.kt              # Ktor API + PostgreSQL persistence
-│   └── ...                     # Original game models
-├── src/main/resources/web/
-│   ├── index.html              # Browser UI
-│   ├── style.css               # Manor theme
-│   └── script.js               # API calls and rendering
-├── screenshots/                # Build, database, API, UI evidence
-├── gradle/wrapper/             # Gradle wrapper files
-├── gradlew
-├── gradlew.bat
-├── build.gradle.kts
-├── settings.gradle.kts
-├── Dockerfile
-├── compose.yaml
-├── .dockerignore
-├── .gitignore
-├── .env.example
-└── README.md
-```
+<!-- ![Build](screenshots/01-build.png) -->
+<!-- ![Containers](screenshots/02-containers.png) -->
+<!-- ![Postman](screenshots/03-postman-crud.png) -->
+<!-- ![PostgreSQL](screenshots/04-postgres.png) -->
+<!-- ![Game](screenshots/05-game.png) -->
+<!-- ![Persistence](screenshots/06-persistence.png) -->
 
-## ✦ Docker configuration
+## Development notes
 
-- **Custom backend Dockerfile:** packages the Kotlin/Ktor application.
-- **Compose services:** `backend` and `db`.
-- **Port mapping:** host `${APP_PORT:-8081}` → backend `8080`.
-- **Internal networking:** backend connects to PostgreSQL using hostname `db` and port `5432`.
-- **Environment variables:** database name, user, password, and application port.
-- **Secrets:** real credentials are kept in a local, Git-ignored `.env` file.
-- **Named volume:** `manor-data` persists database files.
-- **Health check and dependency:** backend waits for the database health check.
-- **Ignore files:** `.gitignore` and `.dockerignore` exclude local and unnecessary files.
-
-## ✦ Useful commands
-
-| Command | Description |
-|---|---|
-| `docker compose up --build -d` | Build and start the application |
-| `docker compose ps` | Show both services and their status |
-| `docker compose logs -f backend` | Follow backend logs |
-| `docker compose logs -f db` | Follow PostgreSQL logs |
-| `docker compose down` | Stop/remove containers while keeping saved data |
-| `docker compose up -d` | Recreate services using existing images |
-| `docker compose config -q` | Validate Compose configuration |
-
+The original Kotlin console source files are preserved. `WebMain.kt` contains the web entry point, SQL database operations and Ktor routes. `src/main/resources/web/` contains the frontend. This is a lightweight browser adaptation, not a full rewrite of the console game.

@@ -1,1 +1,166 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mystical Manor — The Living Archive</title><link rel="stylesheet" href="/style.css"></head><body><main><header><div class="eyebrow">✦ THE LIVING ARCHIVE ✦</div><h1>MYSTICAL MANOR</h1><p>A mansion that remembers every visitor.</p></header><section id="welcome" class="panel"><h2>Enter the Manor</h2><p>Choose who you will become. Your adventure is saved in PostgreSQL.</p><input id="name" maxlength="60" placeholder="Your name" autocomplete="off"><select id="class"><option value="Artist">🎨 Artist — Magic Brush</option><option value="Explorer">🧭 Explorer — Old Compass</option><option value="Mage">🔮 Mage — Arcane Pendant</option></select><button id="create">Begin Adventure →</button><div class="resume"><input id="resumeId" type="number" min="1" placeholder="Existing player ID"><button id="resume">Continue saved game</button></div></section><section id="game" hidden><div class="stats panel"><span id="identity"></span><span id="health"></span><span id="gold"></span><span id="xp"></span><span id="id"></span></div><div class="panel story"><div class="eyebrow" id="room"></div><h2 id="sceneTitle">The Manor Awaits</h2><p id="message"></p><div class="actions"><button data-action="hall">Grand Hall</button><button data-action="gallery">Gallery</button><button data-action="library">Library</button><button data-action="explore">Explore Room</button><button data-action="ability">Special Ability ✦</button></div></div><div class="columns"><section class="panel"><h3>🎒 Inventory</h3><ul id="inventory"></ul></section><section class="panel"><h3>🖼 Discovered Paintings</h3><ul id="paintings"></ul></section></div><button class="link" id="switch">Switch Character</button></section><p id="error" role="alert"></p><footer>KOTLIN · KTOR · POSTGRESQL · DOCKER COMPOSE</footer></main><script src="/script.js"></script></body></html>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mystical Manor — The Living Archive</title>
+
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+<main>
+
+    <!-- Header -->
+    <header>
+        <div class="eyebrow">
+            ✦ THE LIVING ARCHIVE ✦
+        </div>
+
+        <h1>MYSTICAL MANOR</h1>
+
+        <p>A mansion that remembers every visitor.</p>
+    </header>
+
+    <!-- Welcome Screen -->
+    <section id="welcome" class="panel">
+        <h2>Enter the Manor</h2>
+
+        <p>
+            Choose who you will become.
+            Your adventure is saved in PostgreSQL.
+        </p>
+
+        <!-- Character Name -->
+        <input
+                id="name"
+                type="text"
+                maxlength="60"
+                placeholder="Your name"
+                autocomplete="off"
+        >
+
+        <!-- Character Class -->
+        <select id="class">
+            <option value="Artist">
+                🎨 Artist — Magic Brush
+            </option>
+
+            <option value="Explorer">
+                🧭 Explorer — Old Compass
+            </option>
+
+            <option value="Mage">
+                🔮 Mage — Arcane Pendant
+            </option>
+        </select>
+
+        <button id="create">
+            Begin Adventure →
+        </button>
+
+        <!-- Load Existing Character -->
+        <div class="resume">
+            <input
+                    id="resumeId"
+                    type="number"
+                    min="1"
+                    placeholder="Existing player ID"
+            >
+
+            <button id="resume">
+                Continue saved game
+            </button>
+        </div>
+    </section>
+
+    <!-- Game Screen -->
+    <section id="game" hidden>
+
+        <!-- Player Statistics -->
+        <div class="stats panel">
+            <span id="identity"></span>
+            <span id="health"></span>
+            <span id="gold"></span>
+            <span id="xp"></span>
+            <span id="id"></span>
+        </div>
+
+        <!-- Main Story Panel -->
+        <div class="panel story">
+
+            <div class="eyebrow" id="room"></div>
+
+            <h2 id="sceneTitle">
+                The Manor Awaits
+            </h2>
+
+            <p id="message"></p>
+
+            <!-- Game Actions -->
+            <div class="actions">
+                <button data-action="hall">
+                    Grand Hall
+                </button>
+
+                <button data-action="gallery">
+                    Gallery
+                </button>
+
+                <button data-action="library">
+                    Library
+                </button>
+
+                <button data-action="explore">
+                    Explore Room
+                </button>
+
+                <button data-action="ability">
+                    Special Ability ✦
+                </button>
+            </div>
+        </div>
+
+        <!-- Inventory and Paintings -->
+        <div class="columns">
+
+            <!-- Inventory -->
+            <section class="panel">
+                <h3>🎒 Inventory</h3>
+
+                <ul id="inventory"></ul>
+            </section>
+
+            <!-- Discovered Paintings -->
+            <section class="panel">
+                <h3>🖼 Discovered Paintings</h3>
+
+                <ul id="paintings"></ul>
+            </section>
+
+        </div>
+
+        <!-- Switch Character -->
+        <button class="link" id="switch">
+            Switch Character
+        </button>
+
+    </section>
+
+    <!-- Error Messages -->
+    <p id="error" role="alert"></p>
+
+    <!-- Footer -->
+    <footer>
+        KOTLIN · KTOR · POSTGRESQL · DOCKER COMPOSE
+    </footer>
+
+</main>
+
+<script src="/script.js"></script>
+</body>
+
+</html>

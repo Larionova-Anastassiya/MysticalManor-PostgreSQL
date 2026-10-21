@@ -16,6 +16,7 @@ import java.sql.Connection
 @Serializable data class NewPlayer(val name: String, val characterClass: String)
 @Serializable data class PlayerView(val id: Long, val name: String, val characterClass: String, val health: Int, val maxHealth: Int, val gold: Int, val experience: Int, val room: String, val inventory: List<String>, val paintings: List<String>, val message: String)
 @Serializable data class ActionRequest(val action: String)
+@Serializable data class UpdatePlayer(val name: String, val characterClass: String)
 @Serializable data class ErrorView(val error: String)
 
 object ManorDatabase {
@@ -50,6 +51,66 @@ object ManorDatabase {
             } catch(e: Exception) { c.rollback();throw e }
         }
     }
+    fun listPlayers(): List<PlayerView> = connect().use { c ->
+        val ids = c.prepareStatement("SELECT id FROM players ORDER BY id").use { statement ->
+            statement.executeQuery().use { result ->
+                buildList { while (result.next()) add(result.getLong(1)) }
+            }
+        }
+        ids.mapNotNull { load(c, it) }
+    }
+
+    fun update(id: Long, request: UpdatePlayer): PlayerView? {
+        val playerName = request.name.trim()
+        require(playerName.isNotEmpty() && playerName.length <= 60) { "Name must be 1 to 60 characters" }
+        val kind = request.characterClass.lowercase()
+        require(kind in setOf("artist", "explorer", "mage")) { "Choose Artist, Explorer or Mage" }
+        return connect().use { c ->
+            c.autoCommit = false
+            try {
+                // Preserve progression; when class changes, update class-specific maximum HP and starting item.
+                val existing = load(c, id) ?: return@use null
+                val newHero: Character = when (kind) {
+                    "artist" -> Artist(playerName)
+                    "explorer" -> Explorer(playerName)
+                    else -> Mage(playerName)
+                }
+                c.prepareStatement("UPDATE players SET name=?, character_class=?, max_health=?, health=LEAST(health, ?) WHERE id=?").use { st ->
+                    st.setString(1, playerName)
+                    st.setString(2, newHero.characterClass)
+                    st.setInt(3, newHero.maxHealth)
+                    st.setInt(4, newHero.maxHealth)
+                    st.setLong(5, id)
+                    st.executeUpdate()
+                }
+                if (existing.characterClass != newHero.characterClass) {
+                    c.prepareStatement("DELETE FROM inventory WHERE player_id=? AND item IN ('Magic Brush', 'Old Compass', 'Arcane Pendant')").use { st ->
+                        st.setLong(1, id)
+                        st.executeUpdate()
+                    }
+                    val starter = when (kind) {
+                        "artist" -> "Magic Brush"
+                        "explorer" -> "Old Compass"
+                        else -> "Arcane Pendant"
+                    }
+                    insertItem(c, id, starter)
+                }
+                c.commit()
+                load(id)
+            } catch (e: Exception) {
+                c.rollback()
+                throw e
+            }
+        }
+    }
+
+    fun delete(id: Long): Boolean = connect().use { c ->
+        c.prepareStatement("DELETE FROM players WHERE id=?").use { st ->
+            st.setLong(1, id)
+            st.executeUpdate() > 0
+        }
+    }
+
     private fun insertItem(c: Connection,id: Long,item: String) = c.prepareStatement("INSERT INTO inventory(player_id,item) VALUES(?,?) ON CONFLICT DO NOTHING").use { s ->s.setLong(1,id);s.setString(2,item);s.executeUpdate();Unit }
     private fun insertPainting(c: Connection,id: Long,title: String) = c.prepareStatement("INSERT INTO paintings(player_id,title) VALUES(?,?) ON CONFLICT DO NOTHING").use { s ->s.setLong(1,id);s.setString(2,title);s.executeUpdate();Unit }
     fun load(id: Long): PlayerView? = connect().use { c -> load(c,id) }
@@ -97,6 +158,9 @@ fun main() {
         install(ContentNegotiation) { json(Json { prettyPrint=true }) }
         routing {
             get("/api/health") { call.respond(mapOf("status" to "ok")) }
+            get("/api/players") {
+                call.respond(ManorDatabase.listPlayers())
+            }
             post("/api/players") {
                 try { call.respond(HttpStatusCode.Created,ManorDatabase.create(call.receive<NewPlayer>())) }
                 catch(e:IllegalArgumentException) {call.respond(HttpStatusCode.BadRequest,ErrorView(e.message?:"Invalid input"))}
@@ -105,6 +169,29 @@ fun main() {
                 val id=call.parameters["id"]?.toLongOrNull()
                 val player=id?.let {ManorDatabase.load(it)}
                 if(player==null) call.respond(HttpStatusCode.NotFound,ErrorView("Player not found")) else call.respond(player)
+            }
+            put("/api/players/{id}") {
+                val id = call.parameters["id"]?.toLongOrNull()
+                if (id == null || id <= 0) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorView("Invalid player ID"))
+                    return@put
+                }
+                try {
+                    val updated = ManorDatabase.update(id, call.receive<UpdatePlayer>())
+                    if (updated == null) call.respond(HttpStatusCode.NotFound, ErrorView("Player not found"))
+                    else call.respond(updated)
+                } catch (e: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorView(e.message ?: "Invalid input"))
+                }
+            }
+            delete("/api/players/{id}") {
+                val id = call.parameters["id"]?.toLongOrNull()
+                if (id == null || id <= 0) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorView("Invalid player ID"))
+                    return@delete
+                }
+                if (ManorDatabase.delete(id)) call.respond(HttpStatusCode.NoContent)
+                else call.respond(HttpStatusCode.NotFound, ErrorView("Player not found"))
             }
             post("/api/players/{id}/actions") {
                 val id=call.parameters["id"]?.toLongOrNull()
